@@ -113,10 +113,12 @@ class UI:
 
         self.INTERPOLATE_Y = self.WINDOW_HEIGHT / 4
 
-        self.b2 = Button(
+        self.interpolateButton = Button(
             self.canvas_ne, text="Interpolate Cell", command=self.interpolateAndUpdate
         )
-        self.canvas_ne.create_window(200, self.INTERPOLATE_Y, window=self.b2)
+        self.canvas_ne.create_window(
+            200, self.INTERPOLATE_Y, window=self.interpolateButton
+        )
 
         self.cell_help_left = Label(self.canvas_ne, text="(")
         self.cell_help_middle = Label(self.canvas_ne, text=",")
@@ -125,14 +127,18 @@ class UI:
         self.cell_help_row = Label(self.canvas_ne, text="row")
         self.cell_help_column = Label(self.canvas_ne, text="column")
 
-        self.e2 = Entry(self.canvas_ne, width=5)
-        self.e2.insert(0, "0")
+        self.interpColEntry = Entry(self.canvas_ne, width=5)
+        self.interpColEntry.insert(0, "0")
 
-        self.e3 = Entry(self.canvas_ne, width=5)
-        self.e3.insert(0, "0")
+        self.interpRowEntry = Entry(self.canvas_ne, width=5)
+        self.interpRowEntry.insert(0, "0")
 
-        self.canvas_ne.create_window(300, self.INTERPOLATE_Y, window=self.e2)
-        self.canvas_ne.create_window(350, self.INTERPOLATE_Y, window=self.e3)
+        self.canvas_ne.create_window(
+            300, self.INTERPOLATE_Y, window=self.interpColEntry
+        )
+        self.canvas_ne.create_window(
+            350, self.INTERPOLATE_Y, window=self.interpRowEntry
+        )
 
         self.canvas_ne.create_window(
             275, self.INTERPOLATE_Y, window=self.cell_help_left
@@ -150,6 +156,13 @@ class UI:
         self.canvas_ne.create_window(
             348, self.INTERPOLATE_Y + 25, window=self.cell_help_column
         )
+
+        hintLabel = Label(
+            self.canvas_ne,
+            text="Hint: You can also press Enter while selecting a cell to interpolate!",
+        )
+        # Draw hint label
+        self.canvas_ne.create_window(265, self.INTERPOLATE_Y + 75, window=hintLabel)
 
         # Disable resizing for now, things can get ugly without proper scaling
         # Would implement automatic scaler but that's out of the scope of this project
@@ -171,57 +184,57 @@ class UI:
             for j in range(self.SENSOR_COLUMNS):
                 # Each entry is given a unique name with its individual position, so that
                 # it can be referenced later
-                e1 = Entry(self.canvas, width=6, name=f"{i}:{j}")
+                gridEntry = Entry(self.canvas, width=6, name=f"{i}:{j}")
 
                 self.canvas.create_window(
                     (self.CAN_WIDTH / self.SENSOR_ROWS) * i + 45,
                     (self.CAN_HEIGHT / self.SENSOR_COLUMNS) * j + 30,
-                    window=e1,
+                    window=gridEntry,
                 )
                 if self.rounded:
-                    e1.insert(0, str(int(round(self.grid.getVal(i, j)))))
+                    gridEntry.insert(0, str(int(round(self.grid.getVal(i, j)))))
                 else:
 
-                    e1.insert(0, str(self.grid.getVal(i, j)))
+                    gridEntry.insert(0, str(self.grid.getVal(i, j)))
 
                 # Binds a keyrelease event to each Entry widget, so that it automatically updates
                 # whenever the keyboard is used while using the text box.
-                e1.bind("<KeyRelease>", self.updateEntry)
+                gridEntry.bind("<KeyRelease>", self.updateEntry)
 
         # Indicator labels that show rows/columns
-        l1 = Label(self.canvas, text="0")
-        l4 = Label(self.canvas, text="0")
-        l2 = Label(self.canvas, text=str(self.SENSOR_COLUMNS - 1))
-        l3 = Label(self.canvas, text=str(self.SENSOR_ROWS - 1))
+        beginRowLabel = Label(self.canvas, text="0")
+        beginColumnLabel = Label(self.canvas, text="0")
+        endRowLabel = Label(self.canvas, text=str(self.SENSOR_COLUMNS - 1))
+        endColumnLabel = Label(self.canvas, text=str(self.SENSOR_ROWS - 1))
 
         # Draw 0s
-        self.canvas.create_window(10, 30, window=l1)
-        self.canvas.create_window(45, 10, window=l4)
+        self.canvas.create_window(10, 30, window=beginRowLabel)
+        self.canvas.create_window(45, 10, window=beginColumnLabel)
 
         # Draw row/column indicators exactly in line with Entry widgets. Scales to more or less columns/rows
         self.canvas.create_window(
             (self.CAN_WIDTH / self.SENSOR_ROWS) * (self.SENSOR_ROWS - 1) + 45,
             10,
-            window=l3,
+            window=endColumnLabel,
         )
         self.canvas.create_window(
             10,
             (self.CAN_HEIGHT / self.SENSOR_COLUMNS) * (self.SENSOR_COLUMNS - 1) + 30,
-            window=l2,
+            window=endRowLabel,
         )
 
         # Toggle name of button based on the state of 'rounded'
         if self.rounded:
-            b1 = Button(
+            roundButton = Button(
                 self.canvas_sw, text="Show True Values", command=self.toggleRound
             )
         else:
-            b1 = Button(
+            roundButton = Button(
                 self.canvas_sw, text="Show Rounded Values", command=self.toggleRound
             )
 
         # Draw toggle button
-        self.canvas_sw.create_window(self.WINDOW_WIDTH / 4, 50, window=b1)
+        self.canvas_sw.create_window(self.WINDOW_WIDTH / 4, 50, window=roundButton)
         self.canvas_sw.pack()
         self.canvas_sw.place(relx=0.0, rely=1.0, anchor=SW)
 
@@ -285,7 +298,9 @@ class UI:
     def interpolateAndUpdate(self):
 
         try:
-            self.grid.interpolate(int(self.e3.get()), int(self.e2.get()))
+            self.grid.interpolate(
+                int(self.interpRowEntry.get()), int(self.interpColEntry.get())
+            )
         except:
             messagebox.showerror(
                 "Interpolation Error", "Please enter a valid cell location!"
@@ -293,6 +308,7 @@ class UI:
         else:
             self.populateEntries()
 
-if(__name__=="__main__"):   
+
+if __name__ == "__main__":
     # Initialize main window
     main_ui = UI(960, 540, 6, 6)
