@@ -259,7 +259,7 @@ class UI:
         # Check if keyboard event contains one letter, because events like 'Return' wil be
         # flagged if not
         elif len(event.keysym) == 1 and (
-            (event.keysym.isalpha()) or (event.keysym in illegal)
+            (event.keysym.isalpha() and event.keysym.lower() != 'a') or (event.keysym in illegal)
         ):
             # Get value of Entry widget before the letter was typed
             txt = event.widget.get()[:-1]
